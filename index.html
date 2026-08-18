@@ -65,7 +65,7 @@
     }
     .radio-row:last-child { border-bottom: none; }
     .radio-row input[type="radio"] { width: 1em; height: 1em; accent-color: #2563eb; flex-shrink: 0; }
-    .radio-row .radio-label { flex: 1; font-size: .84rem; color: #333; cursor: pointer; }
+    .radio-row .radio-label { flex: 0 1 auto; font-size: .84rem; color: #333; cursor: pointer; }
     .radio-row .radio-extra { width: 7em; flex-shrink: 0; }
 
     .price-row {
@@ -78,11 +78,11 @@
     .price-row .unit { font-size: .74rem; color: #888; width: 2em; }
 
     .rura-input { display: flex; align-items: center; gap: 6px; }
-    .rura-input input { flex: 1; }
+    .rura-input input { width: 7em; flex: 0 0 auto; }
     .rura-input .unit { font-size: .82rem; color: #666; }
 
     textarea {
-      width: 100%; min-height: 80px; padding: .35em .5em; border: 1.5px solid #ddd;
+      width: 100%; min-height: 120px; padding: .35em .5em; border: 1.5px solid #ddd;
       border-radius: .45em; font-size: .78rem; outline: none;
       font-family: 'Consolas', monospace; resize: vertical;
       background: #fafafa; color: #333;
