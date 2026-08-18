@@ -33,6 +33,8 @@ Cztery grupy pól:
 
 Przycisk **Oblicz** wypisuje w polu wynikowym rozbicie na składowe + sumę. **Resetuj** przywraca wartości domyślne.
 
+Interfejs celowo skompresowany (małe odstępy/paddingi), tak żeby cała zakładka Kalkulator mieściła się w jednym oknie bez przewijania. Pola do ręcznego wpisania ("Inna kwota", "Inna długość", "Rura") są celowo wąskie i przylegają bezpośrednio do opisu — nie rozciągają się na szerokość karty.
+
 ### Cennik
 
 Edytowalne pola cenowe:
@@ -56,8 +58,8 @@ Zapisywane przyciskiem **Zapisz cennik** do Firestore (własny projekt Firebase 
 
 ### Kontrola dostępu
 
-Na starcie `index.html` sprawdza `sessionStorage.getItem('skyapp_auth') !== '1'` i jeśli nie ustawione, przekierowuje na hub `https://andrzejdlu-ops.github.io/`. To **nie jest** prawdziwe zabezpieczenie (sessionStorage łatwo ustawić ręcznie w konsoli przeglądarki) — to samo podejście co w Kalkulatorze Premii, traktowane jako ukrycie przed przypadkowym wejściem, nie kontrola dostępu. Nie ma tu żadnych danych wrażliwych ani backendu, więc ryzyko jest znikome.
+Na starcie `index.html` sprawdza `sessionStorage.getItem('skyapp_auth') !== '1'` i jeśli nie ustawione, przekierowuje na hub `https://andrzejdlu-ops.github.io/`. To **nie jest** prawdziwe zabezpieczenie (sessionStorage łatwo ustawić ręcznie w konsoli przeglądarki) — to samo podejście co w Kalkulatorze Premii, traktowane jako ukrycie przed przypadkowym wejściem, nie kontrola dostępu. Rzeczywistą barierą dla zapisu/odczytu danych są reguły Firestore (wymóg zalogowania, choćby anonimowego) + walidacja struktury dokumentu.
 
-Własny projekt Firebase (`kalkulator-instalacji-672ca`) — celowo NIE współdzielony z Kalkulatorem Premii. Przechowuje tylko cennik, nie ma historii obliczeń w chmurze (inaczej niż Kalkulator Premii). Anonymous Auth wymaga jednorazowego ręcznego włączenia w konsoli — patrz [SETUP.md](SETUP.md).
+Własny projekt Firebase (`kalkulator-instalacji-672ca`) — celowo NIE współdzielony z Kalkulatorem Premii. Przechowuje tylko cennik, nie ma historii obliczeń w chmurze (inaczej niż Kalkulator Premii). Anonymous Auth zostało włączone ręcznie w konsoli (jednorazowy krok, nie da się przez CLI) i synchronizacja cennika między urządzeniami jest przetestowana i działa — szczegóły w [SETUP.md](SETUP.md).
 
 Pełne informacje o dostępach, kontach i deployu: [SETUP.md](SETUP.md).

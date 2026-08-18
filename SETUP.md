@@ -93,9 +93,41 @@ Cennik (ceny kabla/rury/dopłaty topologii) jest współdzielony między wszystk
   cd "kalkulator instalacji/firebase"
   firebase deploy --only firestore:rules --project kalkulator-instalacji-672ca
   ```
-- **Reguły:** wymóg `request.auth != null` na read/write + walidacja struktury dokumentu `cennik/config` (dozwolone tylko pola `kab140, kab200, kab250, kabOver, rura, topo, updatedAt`, wszystkie liczby w rozsądnym zakresie). Wszystko poza `cennik/config` zablokowane.
-- **Anonymous Auth — WYMAGANY KROK RĘCZNY:** trzeba raz kliknąć w konsoli Firebase: **Authentication → Sign-in method → Anonymous → Enable**. Bezpośredni link: https://console.firebase.google.com/project/kalkulator-instalacji-672ca/authentication/providers — **nie da się tego zrobić przez CLI/API** (błąd `auth/configuration-not-found` dopóki nie zostanie kliknięte w konsoli). Dopóki nie jest włączone, appka działa w trybie offline: pokazuje ceny domyślne/z lokalnego cache i czerwony komunikat "Brak połączenia z bazą — używane ceny lokalne", ale się nie wywala.
-- **Zachowanie appki:** przy starcie od razu pokazuje ceny z lokalnego cache (`localStorage`, klucz `kalkulator_instalacji_cennik_cache`) lub domyślne — bez migania zerami — a następnie podłącza się pod `onSnapshot` na `cennik/config`, więc zmiana ceny na jednym urządzeniu pojawia się na żywo (bez odświeżania) na innych otwartych sesjach. `savePrices()` zapisuje jednocześnie do Firestore i do lokalnego cache; jeśli zapis do bazy się nie uda, dane i tak zostają zapisane lokalnie (offline-first).
+- **Reguły:** wymóg `request.auth != null` na read/write + walidacja struktury dokumentu `cennik/config` (dozwolone tylko pola `kab140, kab200, kab250, kabOver, rura, topo, updatedAt`, wszystkie liczby w rozsądnym zakresie). Wszystko poza `cennik/config` zablokowane. Pełna treść `firestore.rules` (na wypadek gdyby folder `firebase/` zaginął — nie jest w git):
+  ```
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+
+      match /cennik/{docId} {
+        function isValidCennik() {
+          let d = request.resource.data;
+          return docId == 'config'
+            && d.keys().hasOnly(['kab140', 'kab200', 'kab250', 'kabOver', 'rura', 'topo', 'updatedAt'])
+            && d.keys().hasAll(['kab140', 'kab200', 'kab250', 'kabOver', 'rura', 'topo'])
+            && d.kab140 is number && d.kab140 >= 0 && d.kab140 <= 100000
+            && d.kab200 is number && d.kab200 >= 0 && d.kab200 <= 100000
+            && d.kab250 is number && d.kab250 >= 0 && d.kab250 <= 100000
+            && d.kabOver is number && d.kabOver >= 0 && d.kabOver <= 100000
+            && d.rura is number && d.rura >= 0 && d.rura <= 10000
+            && d.topo is number && d.topo >= 0 && d.topo <= 100000;
+        }
+
+        allow read:   if request.auth != null;
+        allow create: if request.auth != null && isValidCennik();
+        allow update: if request.auth != null && isValidCennik();
+        allow delete: if false;
+      }
+
+      match /{document=**} {
+        allow read, write: if false;
+      }
+    }
+  }
+  ```
+- **Anonymous Auth — WŁĄCZONE (2026-08-18).** Był to jednorazowy ręczny krok w konsoli Firebase: **Authentication → Sign-in method → Anonymous → Enable** (https://console.firebase.google.com/project/kalkulator-instalacji-672ca/authentication/providers) — **nie da się tego zrobić przez CLI/API** (błąd `auth/configuration-not-found` dopóki nie zostanie kliknięte w konsoli). Gdyby trzeba było odtworzyć projekt od zera, to jedyny krok wymagający ręcznej interwencji człowieka w przeglądarce.
+- **Synchronizacja między urządzeniami — przetestowana i potwierdzona działająca (2026-08-18).** Test: dwie niezależne sesje przeglądarki (osobny `localStorage`/kontekst, symulacja dwóch komputerów) — zapis ceny w sesji A trafia do Firestore i pojawia się natychmiast przy świeżym wejściu w sesji B, a już otwarta sesja B dostaje aktualizację na żywo (`onSnapshot`, bez odświeżania strony) po zmianie w A.
+- **Zachowanie appki:** przy starcie od razu pokazuje ceny z lokalnego cache (`localStorage`, klucz `kalkulator_instalacji_cennik_cache`) lub domyślne — bez migania zerami — a następnie podłącza się pod `onSnapshot` na `cennik/config`, więc zmiana ceny na jednym urządzeniu pojawia się na żywo (bez odświeżania) na innych otwartych sesjach. `savePrices()` zapisuje jednocześnie do Firestore i do lokalnego cache; jeśli zapis do bazy się nie uda (np. brak internetu), dane i tak zostają zapisane lokalnie (offline-first) i appka pokazuje czerwony komunikat błędu zamiast się wywalić.
 
 ## Znane pułapki (na bazie doświadczeń z Kalkulatora Premii — to samo konto/ekosystem)
 
