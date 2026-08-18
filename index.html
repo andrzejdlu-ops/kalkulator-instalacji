@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <title>Kalkulator Instalacji</title>
+  <link rel="manifest" href="manifest.json">
+  <script>
+    // Guard: redirect to main panel if not authenticated
+    if (sessionStorage.getItem('skyapp_auth') !== '1') {
+      window.location.replace('https://andrzejdlu-ops.github.io/');
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f0f0;
+      min-height: 100dvh;
+      padding: 16px 16px 40px;
+    }
+
+    .tabs {
+      display: flex;
+      background: #fff;
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    }
+    .tab {
+      flex: 1; padding: 10px; text-align: center; border-radius: 9px;
+      font-size: .9rem; font-weight: 600; cursor: pointer; color: #888;
+      transition: background .2s, color .2s; border: none; background: none;
+    }
+    .tab.active { background: #2563eb; color: #fff; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .card {
+      background: #fff; border-radius: 12px; padding: 16px;
+      margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    }
+    .section-title {
+      font-size: .8rem; font-weight: 600; color: #888;
+      text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px;
+    }
+    label { display: block; font-size: .85rem; color: #555; margin-bottom: 4px; }
+
+    input[type="number"], input[type="text"] {
+      width: 100%; padding: .55em .75em; border: 1.5px solid #ddd;
+      border-radius: .5em; font-size: 1rem; outline: none;
+      transition: border-color .2s; background: #fff;
+    }
+    input:focus { border-color: #2563eb; }
+    input:disabled { background: #f5f5f5; color: #aaa; }
+
+    .radio-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid #f3f3f3;
+    }
+    .radio-row:last-child { border-bottom: none; }
+    .radio-row input[type="radio"] { width: 1.15em; height: 1.15em; accent-color: #2563eb; flex-shrink: 0; }
+    .radio-row .radio-label { flex: 1; font-size: .92rem; color: #333; cursor: pointer; }
+    .radio-row .radio-extra { width: 8.5em; flex-shrink: 0; }
+
+    .price-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid #f3f3f3;
+    }
+    .price-row:last-child { border-bottom: none; }
+    .price-row label { flex: 1; margin-bottom: 0; }
+    .price-row input { width: 8em; flex-shrink: 0; }
+    .price-row .unit { font-size: .8rem; color: #888; width: 2.4em; }
+
+    .rura-input { display: flex; align-items: center; gap: 10px; }
+    .rura-input input { flex: 1; }
+    .rura-input .unit { font-size: .9rem; color: #666; }
+
+    textarea {
+      width: 100%; min-height: 160px; padding: .6em .75em; border: 1.5px solid #ddd;
+      border-radius: .5em; font-size: .85rem; outline: none;
+      font-family: 'Consolas', monospace; resize: vertical;
+      background: #fafafa; color: #333;
+    }
+
+    .btn-row { display: flex; gap: 10px; }
+    .btn-reset {
+      flex: 1; padding: 16px; background: #fff; color: #666; border: 1.5px solid #ddd;
+      border-radius: 12px; font-size: 1.05rem; font-weight: 700; cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-reset:hover { border-color: #ef4444; color: #ef4444; }
+    .btn-calc {
+      flex: 2; padding: 16px; background: #2563eb; color: #fff; border: none;
+      border-radius: 12px; font-size: 1.05rem; font-weight: 700; cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-calc:hover { background: #1d4ed8; }
+
+    .btn-save-prices {
+      width: 100%; padding: 14px; background: #2563eb; color: #fff; border: none;
+      border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: background .2s; margin-top: 4px;
+    }
+    .btn-save-prices:hover { background: #1d4ed8; }
+    .save-note { text-align: center; font-size: .8rem; color: #16a34a; margin-top: 8px; min-height: 1.2em; }
+
+    .back-link {
+      display: inline-block; margin-bottom: 12px; font-size: .85rem;
+      color: #666; text-decoration: none;
+    }
+    .back-link:hover { color: #2563eb; }
+  </style>
+</head>
+<body>
+
+<a class="back-link" href="https://andrzejdlu-ops.github.io/">&larr; Powrót do panelu</a>
+
+<div class="tabs">
+  <button class="tab active" data-screen="kalkulator">Kalkulator</button>
+  <button class="tab" data-screen="cennik">Cennik</button>
+</div>
+
+<!-- KALKULATOR -->
+<div class="screen active" id="screen-kalkulator">
+
+  <div class="card">
+    <div class="section-title">Aktywacja</div>
+    <div class="radio-row">
+      <input type="radio" name="aktywacja" id="akt-1" value="1" checked>
+      <label class="radio-label" for="akt-1">1 zł</label>
+    </div>
+    <div class="radio-row">
+      <input type="radio" name="aktywacja" id="akt-99" value="99">
+      <label class="radio-label" for="akt-99">99 zł</label>
+    </div>
+    <div class="radio-row">
+      <input type="radio" name="aktywacja" id="akt-249" value="249">
+      <label class="radio-label" for="akt-249">249 zł</label>
+    </div>
+    <div class="radio-row">
+      <input type="radio" name="aktywacja" id="akt-inna" value="inna">
+      <label class="radio-label" for="akt-inna">Inna kwota</label>
+      <input type="number" class="radio-extra" id="akt-inna-val" min="0" step="0.01" value="0" disabled>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Kabel</div>
+    <div class="radio-row">
+      <input type="radio" name="kabel" id="kab-140" value="140" checked>
+      <label class="radio-label" for="kab-140">do 140 m</label>
+    </div>
+    <div class="radio-row">
+      <input type="radio" name="kabel" id="kab-200" value="200">
+      <label class="radio-label" for="kab-200">141 - 200 m</label>
+    </div>
+    <div class="radio-row">
+      <input type="radio" name="kabel" id="kab-250" value="250">
+      <label class="radio-label" for="kab-250">201 - 250 m</label>
+    </div>
+    <div class="radio-row">
+      <input type="radio" name="kabel" id="kab-inna" value="inna">
+      <label class="radio-label" for="kab-inna">Inna długość</label>
+      <input type="number" class="radio-extra" id="kab-inna-val" min="0" step="1" value="0" disabled>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Rura</div>
+    <div class="rura-input">
+      <input type="number" id="rura-val" min="0" step="1" value="0">
+      <span class="unit">m</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Topologia instalacji</div>
+    <div class="radio-row">
+      <input type="radio" name="topologia" id="topo-bez" value="bez" checked>
+      <label class="radio-label" for="topo-bez">Słup &rarr; ziemia &rarr; dom (bez dopłaty)</label>
+    </div>
+    <div class="radio-row">
+      <input type="radio" name="topologia" id="topo-z" value="z">
+      <label class="radio-label" for="topo-z">Słup-słup(y) &rarr; ziemia &rarr; dom (dopłata)</label>
+    </div>
+  </div>
+
+  <div class="btn-row" style="margin-bottom: 10px;">
+    <button class="btn-reset" onclick="resetForm()">Resetuj</button>
+    <button class="btn-calc" onclick="calculate()">Oblicz</button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Wynik</div>
+    <textarea id="wynik" readonly>Wpisz dane do obliczeń.</textarea>
+  </div>
+
+</div>
+
+<!-- CENNIK -->
+<div class="screen" id="screen-cennik">
+
+  <div class="card">
+    <div class="section-title">Kabel — ceny wg długości</div>
+    <div class="price-row">
+      <label for="p-kab-140">do 140 m</label>
+      <input type="number" id="p-kab-140" min="0" step="0.01">
+      <span class="unit">zł</span>
+    </div>
+    <div class="price-row">
+      <label for="p-kab-200">141 - 200 m</label>
+      <input type="number" id="p-kab-200" min="0" step="0.01">
+      <span class="unit">zł</span>
+    </div>
+    <div class="price-row">
+      <label for="p-kab-250">201 - 250 m</label>
+      <input type="number" id="p-kab-250" min="0" step="0.01">
+      <span class="unit">zł</span>
+    </div>
+    <div class="price-row">
+      <label for="p-kab-over">za każde rozpoczęte 50 m powyżej 250 m</label>
+      <input type="number" id="p-kab-over" min="0" step="0.01">
+      <span class="unit">zł</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Rura</div>
+    <div class="price-row">
+      <label for="p-rura">cena za metr rury</label>
+      <input type="number" id="p-rura" min="0" step="0.01">
+      <span class="unit">zł</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Topologia instalacji</div>
+    <div class="price-row">
+      <label for="p-topo">dopłata: słup-słup(y) &rarr; ziemia &rarr; dom</label>
+      <input type="number" id="p-topo" min="0" step="0.01">
+      <span class="unit">zł</span>
+    </div>
+  </div>
+
+  <button class="btn-save-prices" onclick="savePrices()">Zapisz cennik</button>
+  <div class="save-note" id="save-note"></div>
+
+</div>
+
+<script>
+  // ---- tabs ----
+  document.querySelectorAll('.tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+      document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('screen-' + tab.dataset.screen).classList.add('active');
+    });
+  });
+
+  // ---- radio "inna" enables its number field ----
+  function wireRadioGroup(name, extraId) {
+    document.querySelectorAll('input[name="' + name + '"]').forEach(function (r) {
+      r.addEventListener('change', function () {
+        var extra = document.getElementById(extraId);
+        if (!extra) return;
+        extra.disabled = (r.value !== 'inna') || !r.checked;
+        if (r.checked && r.value === 'inna') extra.focus();
+      });
+    });
+  }
+  wireRadioGroup('aktywacja', 'akt-inna-val');
+  wireRadioGroup('kabel', 'kab-inna-val');
+
+  // ---- cennik: persistence via localStorage ----
+  var PRICES_KEY = 'kalkulator_instalacji_cennik';
+  var DEFAULT_PRICES = {
+    kab140: 0,
+    kab200: 100,
+    kab250: 200,
+    kabOver: 100,
+    rura: 2.5,
+    topo: 50
+  };
+
+  function loadPrices() {
+    var raw = localStorage.getItem(PRICES_KEY);
+    var prices = DEFAULT_PRICES;
+    if (raw) {
+      try {
+        var parsed = JSON.parse(raw);
+        prices = Object.assign({}, DEFAULT_PRICES, parsed);
+      } catch (e) { /* ignore malformed data, fall back to defaults */ }
+    }
+    document.getElementById('p-kab-140').value = prices.kab140;
+    document.getElementById('p-kab-200').value = prices.kab200;
+    document.getElementById('p-kab-250').value = prices.kab250;
+    document.getElementById('p-kab-over').value = prices.kabOver;
+    document.getElementById('p-rura').value = prices.rura;
+    document.getElementById('p-topo').value = prices.topo;
+    return prices;
+  }
+
+  function readPricesFromForm() {
+    return {
+      kab140: parseFloat(document.getElementById('p-kab-140').value) || 0,
+      kab200: parseFloat(document.getElementById('p-kab-200').value) || 0,
+      kab250: parseFloat(document.getElementById('p-kab-250').value) || 0,
+      kabOver: parseFloat(document.getElementById('p-kab-over').value) || 0,
+      rura: parseFloat(document.getElementById('p-rura').value) || 0,
+      topo: parseFloat(document.getElementById('p-topo').value) || 0
+    };
+  }
+
+  function savePrices() {
+    localStorage.setItem(PRICES_KEY, JSON.stringify(readPricesFromForm()));
+    var note = document.getElementById('save-note');
+    note.textContent = 'Cennik zapisany.';
+    setTimeout(function () { note.textContent = ''; }, 2500);
+  }
+
+  loadPrices();
+
+  // ---- helpers ----
+  function fmt(n) {
+    return n.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' zł';
+  }
+
+  function kabelCena(prices, dlugosc) {
+    if (dlugosc <= 140) return { opis: 'do 140 m', cena: prices.kab140 };
+    if (dlugosc <= 200) return { opis: '141 - 200 m', cena: prices.kab200 };
+    if (dlugosc <= 250) return { opis: '201 - 250 m', cena: prices.kab250 };
+    var segments = Math.ceil((dlugosc - 250) / 50);
+    var cena = prices.kab250 + segments * prices.kabOver;
+    return { opis: dlugosc + ' m (250 m + ' + segments + ' × 50 m)', cena: cena };
+  }
+
+  // ---- calculation ----
+  function calculate() {
+    var prices = readPricesFromForm();
+    var lines = [];
+    var total = 0;
+
+    // Aktywacja
+    var aktRadio = document.querySelector('input[name="aktywacja"]:checked');
+    var aktKwota;
+    if (aktRadio.value === 'inna') {
+      aktKwota = parseFloat(document.getElementById('akt-inna-val').value) || 0;
+    } else {
+      aktKwota = parseFloat(aktRadio.value);
+    }
+    lines.push('Aktywacja: ' + fmt(aktKwota));
+    total += aktKwota;
+
+    // Kabel
+    var kabRadio = document.querySelector('input[name="kabel"]:checked');
+    var dlugoscKabla;
+    if (kabRadio.value === 'inna') {
+      dlugoscKabla = parseFloat(document.getElementById('kab-inna-val').value) || 0;
+    } else {
+      dlugoscKabla = parseFloat(kabRadio.value);
+    }
+    var kab = kabelCena(prices, dlugoscKabla);
+    lines.push('Kabel (' + kab.opis + '): ' + fmt(kab.cena));
+    total += kab.cena;
+
+    // Rura
+    var rura = parseFloat(document.getElementById('rura-val').value) || 0;
+    if (rura > 0) {
+      var ruraKwota = rura * prices.rura;
+      lines.push('Rura (' + rura + ' m × ' + fmt(prices.rura) + '/m): ' + fmt(ruraKwota));
+      total += ruraKwota;
+    }
+
+    // Topologia
+    var topoRadio = document.querySelector('input[name="topologia"]:checked');
+    if (topoRadio.value === 'z' && prices.topo > 0) {
+      lines.push('Dopłata za topologię (słup-słup(y)): ' + fmt(prices.topo));
+      total += prices.topo;
+    }
+
+    lines.push('');
+    lines.push('RAZEM: ' + fmt(total));
+
+    document.getElementById('wynik').value = lines.join('\n');
+  }
+
+  // ---- reset ----
+  function resetForm() {
+    document.getElementById('akt-1').checked = true;
+    document.getElementById('akt-inna-val').value = 0;
+    document.getElementById('akt-inna-val').disabled = true;
+
+    document.getElementById('kab-140').checked = true;
+    document.getElementById('kab-inna-val').value = 0;
+    document.getElementById('kab-inna-val').disabled = true;
+
+    document.getElementById('rura-val').value = 0;
+
+    document.getElementById('topo-bez').checked = true;
+
+    document.getElementById('wynik').value = 'Wpisz dane do obliczeń.';
+  }
+</script>
+</body>
+</html>
