@@ -253,7 +253,32 @@
 
 </div>
 
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
 <script>
+  // ---- Firebase init ----
+  const firebaseConfig = {
+    apiKey: "AIzaSyApsuj77TS-KwyTmBGOYwBzvt7kzPpV-X4",
+    authDomain: "kalkulator-instalacji-672ca.firebaseapp.com",
+    projectId: "kalkulator-instalacji-672ca",
+    storageBucket: "kalkulator-instalacji-672ca.firebasestorage.app",
+    messagingSenderId: "449649988553",
+    appId: "1:449649988553:web:e92ff389128327d7ae4e18"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const cennikRef = db.collection('cennik').doc('config');
+
+  // Firestore rules require request.auth != null — sign in anonymously before any read/write.
+  const authReady = auth.signInAnonymously().catch(function (e) {
+    console.error('Auth error:', e);
+    showSaveNote('Błąd autoryzacji — używane ceny lokalne (offline).', true);
+  });
+
   // ---- tabs ----
   document.querySelectorAll('.tab').forEach(function (tab) {
     tab.addEventListener('click', function () {
@@ -278,8 +303,8 @@
   wireRadioGroup('aktywacja', 'akt-inna-val');
   wireRadioGroup('kabel', 'kab-inna-val');
 
-  // ---- cennik: persistence via localStorage ----
-  var PRICES_KEY = 'kalkulator_instalacji_cennik';
+  // ---- cennik: Firestore (współdzielone między urządzeniami), z lokalnym cache na offline/pierwsze malowanie ----
+  var PRICES_CACHE_KEY = 'kalkulator_instalacji_cennik_cache';
   var DEFAULT_PRICES = {
     kab140: 0,
     kab200: 100,
@@ -289,22 +314,13 @@
     topo: 50
   };
 
-  function loadPrices() {
-    var raw = localStorage.getItem(PRICES_KEY);
-    var prices = DEFAULT_PRICES;
-    if (raw) {
-      try {
-        var parsed = JSON.parse(raw);
-        prices = Object.assign({}, DEFAULT_PRICES, parsed);
-      } catch (e) { /* ignore malformed data, fall back to defaults */ }
-    }
+  function applyPricesToForm(prices) {
     document.getElementById('p-kab-140').value = prices.kab140;
     document.getElementById('p-kab-200').value = prices.kab200;
     document.getElementById('p-kab-250').value = prices.kab250;
     document.getElementById('p-kab-over').value = prices.kabOver;
     document.getElementById('p-rura').value = prices.rura;
     document.getElementById('p-topo').value = prices.topo;
-    return prices;
   }
 
   function readPricesFromForm() {
@@ -318,14 +334,58 @@
     };
   }
 
-  function savePrices() {
-    localStorage.setItem(PRICES_KEY, JSON.stringify(readPricesFromForm()));
-    var note = document.getElementById('save-note');
-    note.textContent = 'Cennik zapisany.';
-    setTimeout(function () { note.textContent = ''; }, 2500);
+  function cachePricesLocally(prices) {
+    localStorage.setItem(PRICES_CACHE_KEY, JSON.stringify(prices));
   }
 
-  loadPrices();
+  function loadCachedPrices() {
+    var raw = localStorage.getItem(PRICES_CACHE_KEY);
+    if (raw) {
+      try { return Object.assign({}, DEFAULT_PRICES, JSON.parse(raw)); } catch (e) { /* ignore malformed cache */ }
+    }
+    return DEFAULT_PRICES;
+  }
+
+  function showSaveNote(msg, isError) {
+    var note = document.getElementById('save-note');
+    note.textContent = msg;
+    note.style.color = isError ? '#dc2626' : '#16a34a';
+    setTimeout(function () { note.textContent = ''; }, 3500);
+  }
+
+  // Pokaż od razu cache/domyślne (bez migania zerami), potem podłącz się pod żywą synchronizację z bazą.
+  applyPricesToForm(loadCachedPrices());
+
+  authReady.then(function () {
+    cennikRef.onSnapshot(function (doc) {
+      if (doc.exists) {
+        var prices = Object.assign({}, DEFAULT_PRICES, doc.data());
+        applyPricesToForm(prices);
+        cachePricesLocally(prices);
+      }
+    }, function (err) {
+      console.error('Firestore sync error:', err);
+      showSaveNote('Brak połączenia z bazą — używane ceny lokalne.', true);
+    });
+  });
+
+  function savePrices() {
+    var prices = readPricesFromForm();
+    cachePricesLocally(prices);
+    authReady
+      .then(function () {
+        return cennikRef.set(Object.assign({}, prices, {
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }));
+      })
+      .then(function () {
+        showSaveNote('Cennik zapisany i zsynchronizowany.', false);
+      })
+      .catch(function (e) {
+        console.error('Save error:', e);
+        showSaveNote('Zapisano lokalnie — synchronizacja nieudana: ' + e.message, true);
+      });
+  }
 
   // ---- helpers ----
   function fmt(n) {
