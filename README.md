@@ -41,7 +41,7 @@ Edytowalne pola cenowe:
 - cena rury za metr (zł)
 - dopłata za topologię słup-słup(y) (zł)
 
-Zapisywane przez przycisk **Zapisz cennik** do `localStorage` przeglądarki (klucz `kalkulator_instalacji_cennik`) — **nie ma backendu ani bazy danych**, ceny są per-przeglądarka/per-urządzenie. Bez zapisanych wartości używane są domyślne (patrz niżej).
+Zapisywane przyciskiem **Zapisz cennik** do Firestore (własny projekt Firebase `kalkulator-instalacji-672ca`, kolekcja `cennik`, dokument `config`) — **cennik jest wspólny dla wszystkich urządzeń/komputerów** korzystających z aplikacji, aktualizuje się na żywo (bez odświeżania strony) dzięki `onSnapshot`. Lokalnie trzymany jest też cache w `localStorage` (klucz `kalkulator_instalacji_cennik_cache`) — appka działa offline na ostatnio znanych/domyślnych cenach, jeśli nie ma połączenia z bazą. Bez żadnych zapisanych wartości używane są domyślne (patrz niżej).
 
 **Domyślne ceny** (wyprowadzone z `opis cen.txt`, do weryfikacji z aktualnym cennikiem firmowym):
 
@@ -58,6 +58,6 @@ Zapisywane przez przycisk **Zapisz cennik** do `localStorage` przeglądarki (klu
 
 Na starcie `index.html` sprawdza `sessionStorage.getItem('skyapp_auth') !== '1'` i jeśli nie ustawione, przekierowuje na hub `https://andrzejdlu-ops.github.io/`. To **nie jest** prawdziwe zabezpieczenie (sessionStorage łatwo ustawić ręcznie w konsoli przeglądarki) — to samo podejście co w Kalkulatorze Premii, traktowane jako ukrycie przed przypadkowym wejściem, nie kontrola dostępu. Nie ma tu żadnych danych wrażliwych ani backendu, więc ryzyko jest znikome.
 
-Brak Firebase / bazy danych — w przeciwieństwie do Kalkulatora Premii, tu nie ma historii obliczeń w chmurze. Jeśli będzie taka potrzeba w przyszłości, można dodać Firestore analogicznie do `KalkulatorPremii/web/` + `KalkulatorPremii/firebase/`.
+Własny projekt Firebase (`kalkulator-instalacji-672ca`) — celowo NIE współdzielony z Kalkulatorem Premii. Przechowuje tylko cennik, nie ma historii obliczeń w chmurze (inaczej niż Kalkulator Premii). Anonymous Auth wymaga jednorazowego ręcznego włączenia w konsoli — patrz [SETUP.md](SETUP.md).
 
 Pełne informacje o dostępach, kontach i deployu: [SETUP.md](SETUP.md).
