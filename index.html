@@ -19,20 +19,21 @@
       font-family: 'Segoe UI', system-ui, sans-serif;
       background: #f0f0f0;
       min-height: 100dvh;
-      padding: 16px 16px 40px;
+      padding: 4px 4px 8px;
+      font-size: 13px;
     }
 
     .tabs {
       display: flex;
       background: #fff;
-      border-radius: 12px;
-      padding: 4px;
-      margin-bottom: 16px;
+      border-radius: 8px;
+      padding: 2px;
+      margin-bottom: 4px;
       box-shadow: 0 1px 4px rgba(0,0,0,.1);
     }
     .tab {
-      flex: 1; padding: 10px; text-align: center; border-radius: 9px;
-      font-size: .9rem; font-weight: 600; cursor: pointer; color: #888;
+      flex: 1; padding: 5px; text-align: center; border-radius: 6px;
+      font-size: .82rem; font-weight: 600; cursor: pointer; color: #888;
       transition: background .2s, color .2s; border: none; background: none;
     }
     .tab.active { background: #2563eb; color: #fff; }
@@ -41,76 +42,76 @@
     .screen.active { display: block; }
 
     .card {
-      background: #fff; border-radius: 12px; padding: 16px;
-      margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.1);
+      background: #fff; border-radius: 8px; padding: 8px 10px;
+      margin-bottom: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.1);
     }
     .section-title {
-      font-size: .8rem; font-weight: 600; color: #888;
-      text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px;
+      font-size: .74rem; font-weight: 600; color: #888;
+      text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px;
     }
-    label { display: block; font-size: .85rem; color: #555; margin-bottom: 4px; }
+    label { display: block; font-size: .78rem; color: #555; margin-bottom: 2px; }
 
     input[type="number"], input[type="text"] {
-      width: 100%; padding: .55em .75em; border: 1.5px solid #ddd;
-      border-radius: .5em; font-size: 1rem; outline: none;
+      width: 100%; padding: .3em .5em; border: 1.5px solid #ddd;
+      border-radius: .45em; font-size: .88rem; outline: none;
       transition: border-color .2s; background: #fff;
     }
     input:focus { border-color: #2563eb; }
     input:disabled { background: #f5f5f5; color: #aaa; }
 
     .radio-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 0; border-bottom: 1px solid #f3f3f3;
+      display: flex; align-items: center; gap: 6px;
+      padding: 2px 0; border-bottom: 1px solid #f3f3f3;
     }
     .radio-row:last-child { border-bottom: none; }
-    .radio-row input[type="radio"] { width: 1.15em; height: 1.15em; accent-color: #2563eb; flex-shrink: 0; }
-    .radio-row .radio-label { flex: 1; font-size: .92rem; color: #333; cursor: pointer; }
-    .radio-row .radio-extra { width: 8.5em; flex-shrink: 0; }
+    .radio-row input[type="radio"] { width: 1em; height: 1em; accent-color: #2563eb; flex-shrink: 0; }
+    .radio-row .radio-label { flex: 1; font-size: .84rem; color: #333; cursor: pointer; }
+    .radio-row .radio-extra { width: 7em; flex-shrink: 0; }
 
     .price-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 0; border-bottom: 1px solid #f3f3f3;
+      display: flex; align-items: center; gap: 6px;
+      padding: 2px 0; border-bottom: 1px solid #f3f3f3;
     }
     .price-row:last-child { border-bottom: none; }
     .price-row label { flex: 1; margin-bottom: 0; }
-    .price-row input { width: 8em; flex-shrink: 0; }
-    .price-row .unit { font-size: .8rem; color: #888; width: 2.4em; }
+    .price-row input { width: 6.5em; flex-shrink: 0; }
+    .price-row .unit { font-size: .74rem; color: #888; width: 2em; }
 
-    .rura-input { display: flex; align-items: center; gap: 10px; }
+    .rura-input { display: flex; align-items: center; gap: 6px; }
     .rura-input input { flex: 1; }
-    .rura-input .unit { font-size: .9rem; color: #666; }
+    .rura-input .unit { font-size: .82rem; color: #666; }
 
     textarea {
-      width: 100%; min-height: 160px; padding: .6em .75em; border: 1.5px solid #ddd;
-      border-radius: .5em; font-size: .85rem; outline: none;
+      width: 100%; min-height: 80px; padding: .35em .5em; border: 1.5px solid #ddd;
+      border-radius: .45em; font-size: .78rem; outline: none;
       font-family: 'Consolas', monospace; resize: vertical;
       background: #fafafa; color: #333;
     }
 
-    .btn-row { display: flex; gap: 10px; }
+    .btn-row { display: flex; gap: 6px; }
     .btn-reset {
-      flex: 1; padding: 16px; background: #fff; color: #666; border: 1.5px solid #ddd;
-      border-radius: 12px; font-size: 1.05rem; font-weight: 700; cursor: pointer;
+      flex: 1; padding: 8px; background: #fff; color: #666; border: 1.5px solid #ddd;
+      border-radius: 8px; font-size: .88rem; font-weight: 700; cursor: pointer;
       transition: border-color .2s, color .2s;
     }
     .btn-reset:hover { border-color: #ef4444; color: #ef4444; }
     .btn-calc {
-      flex: 2; padding: 16px; background: #2563eb; color: #fff; border: none;
-      border-radius: 12px; font-size: 1.05rem; font-weight: 700; cursor: pointer;
+      flex: 2; padding: 8px; background: #2563eb; color: #fff; border: none;
+      border-radius: 8px; font-size: .88rem; font-weight: 700; cursor: pointer;
       transition: background .2s;
     }
     .btn-calc:hover { background: #1d4ed8; }
 
     .btn-save-prices {
-      width: 100%; padding: 14px; background: #2563eb; color: #fff; border: none;
-      border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer;
-      transition: background .2s; margin-top: 4px;
+      width: 100%; padding: 7px; background: #2563eb; color: #fff; border: none;
+      border-radius: 8px; font-size: .85rem; font-weight: 700; cursor: pointer;
+      transition: background .2s; margin-top: 2px;
     }
     .btn-save-prices:hover { background: #1d4ed8; }
-    .save-note { text-align: center; font-size: .8rem; color: #16a34a; margin-top: 8px; min-height: 1.2em; }
+    .save-note { text-align: center; font-size: .74rem; color: #16a34a; margin-top: 3px; min-height: 1.1em; }
 
     .back-link {
-      display: inline-block; margin-bottom: 12px; font-size: .85rem;
+      display: inline-block; margin-bottom: 4px; font-size: .78rem;
       color: #666; text-decoration: none;
     }
     .back-link:hover { color: #2563eb; }
@@ -190,7 +191,7 @@
     </div>
   </div>
 
-  <div class="btn-row" style="margin-bottom: 10px;">
+  <div class="btn-row" style="margin-bottom: 4px;">
     <button class="btn-reset" onclick="resetForm()">Resetuj</button>
     <button class="btn-calc" onclick="calculate()">Oblicz</button>
   </div>
