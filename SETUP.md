@@ -126,7 +126,15 @@ Cennik (ceny kabla/rury/dopłaty topologii) jest współdzielony między wszystk
   }
   ```
 - **Anonymous Auth — WŁĄCZONE (2026-08-18).** Był to jednorazowy ręczny krok w konsoli Firebase: **Authentication → Sign-in method → Anonymous → Enable** (https://console.firebase.google.com/project/kalkulator-instalacji-672ca/authentication/providers) — **nie da się tego zrobić przez CLI/API** (błąd `auth/configuration-not-found` dopóki nie zostanie kliknięte w konsoli). Gdyby trzeba było odtworzyć projekt od zera, to jedyny krok wymagający ręcznej interwencji człowieka w przeglądarce.
-- **Synchronizacja między urządzeniami — przetestowana i potwierdzona działająca (2026-08-18).** Test: dwie niezależne sesje przeglądarki (osobny `localStorage`/kontekst, symulacja dwóch komputerów) — zapis ceny w sesji A trafia do Firestore i pojawia się natychmiast przy świeżym wejściu w sesji B, a już otwarta sesja B dostaje aktualizację na żywo (`onSnapshot`, bez odświeżania strony) po zmianie w A.
+- **Synchronizacja między urządzeniami — przetestowana i potwierdzona działająca (2026-08-18, ponownie na żywej stronie 2026-08-19).** Test: dwie niezależne sesje przeglądarki (osobny `localStorage`/kontekst, symulacja dwóch komputerów) — zapis ceny w sesji A trafia do Firestore i pojawia się natychmiast przy świeżym wejściu w sesji B, a już otwarta sesja B dostaje aktualizację na żywo (`onSnapshot`, bez odświeżania strony) po zmianie w A. Potwierdzono też, że obliczenia używają ceny z bazy, a nie z lokalnego cache (test z celowo zatrutym cache: baza wygrywa po zakończeniu synchronizacji).
+
+> ### ⚠️ UWAGA: `cennik/config` to PRODUKCYJNE dane firmowe — nie nadpisywać "domyślnymi"
+>
+> Ceny w bazie są wpisywane przez realnych użytkowników i **różnią się od `DEFAULT_PRICES` w kodzie**. Przykład: 2026-08-19 w bazie była cena rury **4,50 zł/m**, podczas gdy w kodzie domyślna to 2,50 zł/m.
+>
+> Firestore nie ma tu włączonego Point-in-time recovery, więc **nadpisanie tego dokumentu jest nieodwracalne** — nie ma historii wersji ani cofnięcia. Zdarzyło się to raz (2026-08-19) przy sprzątaniu po teście automatycznym, który "przywracał wartości domyślne" — realna cena została skasowana i trzeba było ją odtwarzać z logów testu.
+>
+> **Zasady przy testowaniu:** testy automatyczne robić na odczycie, a jeśli test musi pisać — najpierw odczytać i zapamiętać oryginalny dokument, a na końcu przywrócić dokładnie te wartości (nigdy wartości założone/domyślne). Odczyt stanu bazy bez zmieniania czegokolwiek: otworzyć apkę i w konsoli przeglądarki wykonać `await firebase.firestore().collection('cennik').doc('config').get().then(s => s.data())`.
 - **Zachowanie appki:** przy starcie od razu pokazuje ceny z lokalnego cache (`localStorage`, klucz `kalkulator_instalacji_cennik_cache`) lub domyślne — bez migania zerami — a następnie podłącza się pod `onSnapshot` na `cennik/config`, więc zmiana ceny na jednym urządzeniu pojawia się na żywo (bez odświeżania) na innych otwartych sesjach. `savePrices()` zapisuje jednocześnie do Firestore i do lokalnego cache; jeśli zapis do bazy się nie uda (np. brak internetu), dane i tak zostają zapisane lokalnie (offline-first) i appka pokazuje czerwony komunikat błędu zamiast się wywalić.
 
 ## Znane pułapki (na bazie doświadczeń z Kalkulatora Premii — to samo konto/ekosystem)

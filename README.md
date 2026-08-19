@@ -45,7 +45,7 @@ Edytowalne pola cenowe:
 
 Zapisywane przyciskiem **Zapisz cennik** do Firestore (własny projekt Firebase `kalkulator-instalacji-672ca`, kolekcja `cennik`, dokument `config`) — **cennik jest wspólny dla wszystkich urządzeń/komputerów** korzystających z aplikacji, aktualizuje się na żywo (bez odświeżania strony) dzięki `onSnapshot`. Lokalnie trzymany jest też cache w `localStorage` (klucz `kalkulator_instalacji_cennik_cache`) — appka działa offline na ostatnio znanych/domyślnych cenach, jeśli nie ma połączenia z bazą. Bez żadnych zapisanych wartości używane są domyślne (patrz niżej).
 
-**Domyślne ceny** (wyprowadzone z `opis cen.txt`, do weryfikacji z aktualnym cennikiem firmowym):
+**Domyślne ceny** — to wartości startowe zaszyte w kodzie, używane tylko gdy w bazie nie ma jeszcze żadnego cennika. **Ceny obowiązujące produkcyjnie żyją w bazie i mogą się od nich różnić** (np. 2026-08-19 cena rury w bazie wynosiła 4,50 zł/m, nie 2,50 zł/m) — nigdy nie traktować tej tabelki jako stanu faktycznego ani nie nadpisywać nią bazy, patrz ostrzeżenie w [SETUP.md](SETUP.md).
 
 | Pozycja | Wartość domyślna |
 |---|---|
